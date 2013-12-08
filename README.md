@@ -6,30 +6,27 @@ Looking for a possibility to use Email Templates within APEX code? Here's the an
 How to use generic templates?
 -----------------------------
 
-```
-MergeValues values = new MergeValues(new Map<String,Object>{
-  'someString' => 'Some value',
-  'anotherDate' => Date.today(),
-  'someCase' => new Case(subject = 'Sample case'),
-  'someMap' => new Map<String,Object> {
-    'value' => 'map\'s value'
-  }
+```java
+MergeValues values = new MergeValues();
+values.put('someString', 'Some value');
+values.put('anotherDate', Date.today());
+values.put(new Case(subject = 'Sample case'));
+values.put('someMap', new Map<String,Object> {
+  'value' => 'map\'s value'
 });
 
 Template t = new Template(
 	'Here you can use:\n'
-	+ '* {!someString},\n'
-	+ '* {!anotherDate},\n'
-	+ '* {!someCase.subject} or {!someMap.value}\n'
+	+ '* {!someString} or {!anotherDate},\n'
+	+ '* {!Case.subject} or {!someMap.value}\n'
 );
-
 t.evaluate(values);
 ```
 
 Generate emails easily!
 -----------------------
 
-```
+```java
 new EmailGenerator('someTemplate')
   .apply(someCase)
   .getEmailMessage();
