@@ -6,7 +6,7 @@ Looking for a possibility to use Email Templates within APEX code? Here's the an
 How to use generic templates?
 -----------------------------
 
-```java
+```javascript
 MergeValues values = new MergeValues();
 values.put('someString', 'Some value');
 values.put('anotherDate', Date.today());
@@ -26,7 +26,7 @@ t.evaluate(values);
 Generate emails easily!
 -----------------------
 
-```java
+```javascript
 new EmailGenerator('someTemplate')
   .apply(someCase)
   .getEmailMessage();
