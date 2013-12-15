@@ -1,30 +1,34 @@
+/**
+ * @author Andrzej Chodor
+ */
 public class Template {
     private final Pattern MERGE_FIELD_PATTERN = Pattern.compile('\\{!([\\w\\.]+)\\}');
 
     public final String content;
 
-    public List<Object> lexems;
+    private Object[] lexems;
 
     public Template(String content) {
         this.content = content;
     }
 
     public static Template fromEmailTemplate(String developerName) {
-        EmailTemplate emailTpl = [
+        EmailTemplate[] emailTpls = [
             SELECT Body, HtmlValue, TemplateType
             FROM EmailTemplate
             WHERE developerName = :developerName
         ];
-        if(emailTpl.TemplateType == 'HTML') {
-            return new Template(emailTpl.HtmlValue);
+        if(emailTpls.isEmpty()) {
+            throw new TemplateNotFoundException('Template with Unique Name "' + developerName + '" was not found.');
         }
-        return new Template(emailTpl.Body);
+        if(emailTpls[0].TemplateType == 'html' || emailTpls[0].TemplateType == 'custom') {
+            return new Template(emailTpls[0].HtmlValue);
+        }
+        return new Template(emailTpls[0].Body);
     }
 
-    public String evaluate(ObjectBag values) {
-        if(!isCompiled()) {
-            compile();
-        }
+    public String evaluate(MergeValues values) {
+        compile();
 
         String buffer = '';
         for(Object lexem : lexems) {
@@ -34,11 +38,35 @@ public class Template {
         return buffer;
     }
 
+    public String evaluate(SObject sobjectValue) {
+        MergeValues values = new MergeValues();
+        values.put(sobjectValue);
+        return evaluate(values);
+    }
+
+    public String evaluate(Map<String, Object> values) {
+        return evaluate(new MergeValues(values));
+    }
+
+    public void registerFieldsSecurely(MergeValues values) {
+        compile();
+
+        for(Object lexem : lexems) {
+            if(lexem instanceof Gap) {
+                values.registerFieldSecurely(((Gap)lexem).key);
+            }
+        }
+    }
+
     private Boolean isCompiled() {
         return lexems != null;
     }
 
     private void compile() {
+        if(isCompiled()) {
+            return;
+        }
+    
         lexems = new List<Object>();
 
         Matcher contentMatcher = MERGE_FIELD_PATTERN.matcher(content);
@@ -59,7 +87,7 @@ public class Template {
         }
     }
 
-    private static Object evaluate(Object lexem, ObjectBag values) {
+    private static Object evaluate(Object lexem, MergeValues values) {
         if(lexem instanceof String) {
             return lexem;
         }
@@ -92,5 +120,8 @@ public class Template {
         Gap(String key) {
             this.key = key;
         }
+    }
+
+    public class TemplateNotFoundException extends Exception {
     }
 }

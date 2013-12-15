@@ -1,34 +1,31 @@
 @IsTest
 public class TemplateTest {
-    public static testmethod void testSimpleTemplate() {
+    static testmethod void testSimpleTemplate() {
         String tplContent = '-start-{!valueA}-inner-{!valueB}-end-';
         Template tpl = new Template(tplContent);
 
-        ObjectBag values = new ObjectBag(new Map<String,Object> {
-            'valueA' => 'A',
-            'valueB' => 'B'
-        });
-
         Test.startTest();
-            String result = tpl.evaluate(values);
+            String result = tpl.evaluate(new Map<String,Object> {
+                'valueA' => 'A',
+                'valueB' => 'B'
+            });
         Test.stopTest();
         
         System.assertEquals('-start-A-inner-B-end-', result);
     }
 
-    public static testmethod void testSObjectTemplate() {
-        ObjectBag values = new ObjectBag();
-        values.put([SELECT LastName FROM User WHERE Id = :UserInfo.getUserId()]);
+    static testmethod void testSObjectTemplate() {
+        User anUser = [SELECT LastName FROM User WHERE Id = :UserInfo.getUserId()];
         
         Test.startTest();
             String result = new Template('{!User.FirstName} {!User.LastName}')
-                .evaluate(values);
+                .evaluate(anUser);
         Test.stopTest();
         
         System.assertEquals(' ' + UserInfo.getLastName(), result);
     }
 
-    public static testmethod void testEmailTemplateFactoryMethod() {
+    static testmethod void testEmailTemplateFactoryMethod() {
         Boolean exceptionThrown = false;
         try {
             Template tpl = Template.fromEmailTemplate('non-existing-template');
@@ -46,6 +43,18 @@ public class TemplateTest {
         );
 
         Template tpl = Template.fromEmailTemplate('Test');
-        System.assertEquals('Test', tpl.evaluate(new ObjectBag()));
+        System.assertEquals('Test', tpl.evaluate(new MergeValues()));
+    }
+
+    static testmethod void testRegisteringFields() {
+        MergeValues bag = new MergeValues();
+
+        Template tpl = new Template('{!User.FirstName} {!User.LastName}');
+        tpl.registerFieldsSecurely(bag);
+
+        bag.putSObject('User', UserInfo.getUserId());
+        String result = tpl.evaluate(bag);
+
+        System.assertEquals(UserInfo.getFirstName() + ' ' + UserInfo.getLastName(), result);
     }
 }
