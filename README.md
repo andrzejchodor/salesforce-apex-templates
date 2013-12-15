@@ -1,33 +1,20 @@
 salesforce-apex-templates
 =========================
 
-Looking for a possibility to use Email Templates within APEX code? Here's the answer!
+APEX Templates provide a simple template engine, similar to the standard Salesforce mail merge one. Its aim is to generate messages and emails directly from APEX, for provided SObjects or maps of values.
 
-How to use generic templates?
------------------------------
+Basic usage
+-----------
+
+The below snippet demonstrates the most basic usage of APEX Templates:
 
 ```javascript
-MergeValues values = new MergeValues();
-values.put('someString', 'Some value');
-values.put('anotherDate', Date.today());
-values.put(new Case(subject = 'Sample case'));
-values.put('someMap', new Map<String,Object> {
-  'value' => 'map\'s value'
-});
-
-Template t = new Template(
-	'Here you can use:\n'
-	+ '* {!someString} or {!anotherDate},\n'
-	+ '* {!Case.subject} or {!someMap.value}\n'
+Case someCase = new Case(
+  Subject = 'Test Case'
 );
-t.evaluate(values);
-```
 
-Generate emails easily!
------------------------
-
-```javascript
-new EmailGenerator('someTemplate')
-  .apply(someCase)
-  .getEmailMessage();
+// The below will return 'A message for Test Case.'
+new Template(
+  'A message for the {!Case.Subject}.'
+).evaluate(someCase);
 ```
