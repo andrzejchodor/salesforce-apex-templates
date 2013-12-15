@@ -15,6 +15,6 @@ Case someCase = new Case(
 
 // The below will return 'A message for Test Case.'
 new Template(
-  'A message for the {!Case.Subject}.'
+  'A message for {!Case.Subject}.'
 ).evaluate(someCase);
 ```
