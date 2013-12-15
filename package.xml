@@ -2,8 +2,8 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Apex Templates</fullName>
     <types>
-        <members>ObjectBag</members>
-        <members>ObjectBagTest</members>
+        <members>MergeValues</members>
+        <members>MergeValuesTest</members>
         <members>Template</members>
         <members>TemplateTest</members>
         <name>ApexClass</name>
